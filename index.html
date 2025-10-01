@@ -844,7 +844,6 @@
                     credentials: 'include'
                 });
                 const data = await response.json();
-                
                 if (data.success && data.data.words.length > 0) {
                     studyWords = data.data.words;
                     currentWordIndex = 0;
@@ -905,13 +904,6 @@
         function changeSpeed(value) {
             speechSpeed = parseFloat(value);
             document.getElementById('speedValue').textContent = speechSpeed.toFixed(1);
-        }StudySession();
-                else {
-                    alert('復習する単語がありません');
-                }
-            } catch (error) {
-                alert('復習単語の読み込みに失敗しました');
-            }
         }
         
                // 学習セッション開始
