@@ -700,6 +700,11 @@
 
         // アプリ表示
         function showApp() {
+            if (!currentUser || !currentUser.name) {
+                showAlert('loginAlert', 'ユーザー情報の取得に失敗しました。', 'error');
+                showScreen('loginScreen');
+                return;
+            }
             document.getElementById('header').style.display = 'block';
             document.getElementById('userName').textContent = currentUser.name;
             showScreen('homeScreen');
@@ -805,11 +810,16 @@
                     document.getElementById('studyingWords').textContent = progress.studying_words;
                     document.getElementById('masteredWords').textContent = progress.mastered_words;
                     document.getElementById('correctRate').textContent = progress.correct_rate + '%';
-                    
-                    if (currentUser.ranking) {
+
+                    // streakDaysの表示はprogress.rankingまたはcurrentUser.rankingがあれば表示
+                    if (progress.ranking && progress.ranking.streak_days !== undefined) {
+                        document.getElementById('streakDays').textContent = progress.ranking.streak_days + '日';
+                    } else if (currentUser && currentUser.ranking && currentUser.ranking.streak_days !== undefined) {
                         document.getElementById('streakDays').textContent = currentUser.ranking.streak_days + '日';
+                    } else {
+                        document.getElementById('streakDays').textContent = '-';
                     }
-                    
+
                     document.getElementById('reviewCount').textContent = progress.review_words;
                 }
             } catch (error) {
