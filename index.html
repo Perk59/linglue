@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linglue - スマート英単語学習アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --main-color: #83db41;
+            --main-dark: #6bb831;
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #ddd;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+        
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* ヘッダー */
+        header {
+            background: var(--main-color);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--main-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--main-dark);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-danger {
+            background: var(--error-color);
+            color: white;
+        }
+        
+        .btn-large {
+            padding: 15px 30px;
+            font-size: 18px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        /* スクリーン管理 */
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* ログイン・登録フォーム */
+        .auth-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 50px;
+        }
+        
+        .auth-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--main-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--main-color);
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .auth-switch a {
+            color: var(--main-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        /* アラート */
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-error {
+            background: #fde8e8;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+        
+        /* ホーム画面 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--main-color);
+        }
+        
+        .review-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .review-card h3 {
+            margin-bottom: 15px;
+            color: var(--main-color);
+        }
+        
+        /* 学習画面 */
+        .study-display {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .word-display {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--main-color);
+        }
+        
+        .translation-display {
+            font-size: 32px;
+            color: #666;
+            margin: 20px 0;
+        }
+        
+        .study-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .progress-bar {
+            background: #eee;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            background: var(--main-color);
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        /* テスト画面 */
+        .test-question {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .question-text {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--main-color);
+        }
+        
+        .choices {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .choice-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        .choice-btn:hover {
+            border-color: var(--main-color);
+            background: #f9f9f9;
+        }
+        
+        .choice-btn.correct {
+            background: var(--success-color);
+            color: white;
+            border-color: var(--success-color);
+        }
+        
+        .choice-btn.wrong {
+            background: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+        }
+        
+        /* ランキング */
+        .ranking-list {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ranking-item.my-rank {
+            background: #e8f8e0;
+        }
+        
+        .rank-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--main-color);
+            min-width: 50px;
+        }
+        
+        .rank-number.top3 {
+            color: #f39c12;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--main-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin: 0 15px;
+        }
+        
+        .user-info-rank {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-stats {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* タブ */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            border-bottom-color: var(--main-color);
+            color: var(--main-color);
+            font-weight: bold;
+        }
+        
+        /* ローディング */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--main-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .word-display {
+                font-size: 36px;
+            }
+            
+            .translation-display {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header id="header" style="display: none;">
+        <div class="container">
+            <h1>Linglue</h1>
+            <div class="user-info">
+                <span id="userName"></span>
+                <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ログイン画面 -->
+    <div class="screen active" id="loginScreen">
+        <div class="container">
+            <div class="auth-container">
+                <h2>ログイン</h2>
+                <div id="loginAlert"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">ログイン</button>
+                </form>
+                <div class="auth-switch">
+                    アカウントをお持ちでない方は <a href="javascript:void(0)" onclick="showScreen('registerScreen')">新規登録</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登録画面 -->
+    <div class="screen" id="registerScreen">
+        <div class="container">
+            <div class="auth-container">
+                <h2>新規登録</h2>
+                <div id="registerAlert"></div>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>名前</label>
+                        <input type="text" id="registerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>メールアドレス</label>
+                        <input type="email" id="registerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>パスワード（6文字以上）</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large">登録</button>
+                </form>
+                <div class="auth-switch">
+                    既にアカウントをお持ちの方は <a href="javascript:void(0)" onclick="showScreen('loginScreen')">ログイン</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ホーム画面 -->
+    <div class="screen" id="homeScreen">
+        <div class="container">
+            <h2 style="margin: 20px 0;">ダッシュボード</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>学習中</h3>
+                    <div class="value" id="studyingWords">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>習得済み</h3>
+                    <div class="value" id="masteredWords">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>正答率</h3>
+                    <div class="value" id="correctRate">0%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>連続学習</h3>
+                    <div class="value" id="streakDays">0日</div>
+                </div>
+            </div>
+
+            <div class="review-card">
+                <h3>今日の復習</h3>
+                <p>復習が必要な単語: <strong id="reviewCount">0</strong>個</p>
+                <button class="btn btn-primary btn-large" onclick="startReview()">復習を始める</button>
+            </div>
+
+            <button class="btn btn-primary btn-large" onclick="startNewStudy()">新しい単語を学習</button>
+            <button class="btn btn-secondary btn-large" onclick="showScreen('rankingScreen'); loadRanking()">ランキング</button>
+        </div>
+    </div>
+
+    <!-- 学習画面 -->
+    <div class="screen" id="studyScreen">
+        <div class="container">
+            <h2 style="margin: 20px 0;">学習モード</h2>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="studyProgress" style="width: 0%;"></div>
+            </div>
+            
+            <div class="study-display">
+                <div class="word-display" id="studyWord">apple</div>
+                <div class="translation-display" id="studyTranslation">りんご</div>
+                <p style="color: #999; margin-top: 20px;">音声が自動で再生されます</p>
+            </div>
+            
+            <div class="study-controls">
+                <button class="btn btn-secondary" onclick="previousWord()">⏮ 前へ</button>
+                <button class="btn btn-primary" onclick="toggleStudy()" id="playPauseBtn">⏸ 一時停止</button>
+                <button class="btn btn-secondary" onclick="nextWord()">次へ ⏭</button>
+            </div>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <label>速度: <span id="speedValue">1.0</span>x</label>
+                <input type="range" min="0.5" max="2" step="0.1" value="1" 
+                       onchange="changeSpeed(this.value)" style="width: 100%; margin: 10px 0;">
+            </div>
+            
+            <button class="btn btn-danger btn-large" onclick="endStudy()">学習を終了してテストへ</button>
+        </div>
+    </div>
+
+    <!-- テスト画面 -->
+    <div class="screen" id="testScreen">
+        <div class="container">
+            <h2 style="margin: 20px 0;">テストモード</h2>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="testProgress" style="width: 0%;"></div>
+            </div>
+            
+            <div class="test-question">
+                <div class="question-text" id="questionText">apple</div>
+                <div class="choices" id="choicesContainer"></div>
+            </div>
+            
+            <p style="text-align: center; color: #666;">
+                問題 <span id="currentQuestion">1</span> / <span id="totalQuestions">10</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- テスト結果画面 -->
+    <div class="screen" id="resultScreen">
+        <div class="container">
+            <div class="review-card">
+                <h2 style="text-align: center; color: var(--main-color);">テスト結果</h2>
+                
+                <div class="stats-grid" style="margin: 30px 0;">
+                    <div class="stat-card">
+                        <h3>正解</h3>
+                        <div class="value" style="color: var(--success-color);" id="resultCorrect">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>不正解</h3>
+                        <div class="value" style="color: var(--error-color);" id="resultWrong">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <h3>正答率</h3>
+                    <div class="value" id="resultRate">0%</div>
+                </div>
+                
+                <div id="wrongWordsContainer"></div>
+                
+                <button class="btn btn-primary btn-large" onclick="showScreen('homeScreen'); loadProgress()">ホームに戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ランキング画面 -->
+    <div class="screen" id="rankingScreen">
+        <div class="container">
+            <h2 style="margin: 20px 0;">ランキング</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchRankingTab('study_time')">学習時間</button>
+                <button class="tab-btn" onclick="switchRankingTab('correct_rate')">正答率</button>
+                <button class="tab-btn" onclick="switchRankingTab('streak')">連続日数</button>
+            </div>
+            
+            <div id="rankingList" class="ranking-list"></div>
+            
+            <button class="btn btn-secondary btn-large" onclick="showScreen('homeScreen')">ホームに戻る</button>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let currentUser = null;
+        let studyWords = [];
+        let currentWordIndex = 0;
+        let isPlaying = false;
+        let studyInterval = null;
+        let speechSpeed = 1.0;
+        let sessionId = null;
+        let sessionStartTime = null;
+        
+        let testQuestions = [];
+        let currentQuestionIndex = 0;
+        let testAnswers = [];
+        let questionStartTime = null;
+        
+        // APIベースURL（環境に応じて変更）
+        const API_BASE = './api';
+        
+        // 初期化
+        window.onload = function() {
+            checkAuth();
+            initForms();
+        };
+        
+        // 画面切り替え
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        // アラート表示
+        function showAlert(elementId, message, type) {
+            const alertEl = document.getElementById(elementId);
+            alertEl.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => alertEl.innerHTML = '', 5000);
+        }
+        
+        // 認証チェック
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/auth.php?action=me`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                console.log('Auth check:', data);
+                
+                if (data.success) {
+                    currentUser = data.data;
+                    showApp();
+                } else {
+                    showScreen('loginScreen');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showScreen('loginScreen');
+            }
+        }
+        
+        // フォーム初期化
+        function initForms() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+        }
+        
+        // ログイン処理
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            console.log('Login attempt:', email);
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth.php?action=login`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                console.log('Login response:', data);
+                
+                if (data.success) {
+                    currentUser = data.data;
+                    showAlert('loginAlert', data.message, 'success');
+                    setTimeout(() => showApp(), 1000);
+                } else {
+                    showAlert('loginAlert', data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('loginAlert', 'ログインに失敗しました', 'error');
+            }
+        }
+        
+        // 登録処理
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            console.log('Register attempt:', { name, email });
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth.php?action=register`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                console.log('Register response:', data);
+                
+                if (data.success) {
+                    currentUser = data.data;
+                    showAlert('registerAlert', data.message, 'success');
+                    setTimeout(() => showApp(), 1000);
+                } else {
+                    showAlert('registerAlert', data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                showAlert('registerAlert', '登録に失敗しました: ' + error.message, 'error');
+            }
+        }
+        
+        // ログアウト
+        async function logout() {
+            try {
+                await fetch(`${API_BASE}/auth.php?action=logout`, { 
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            currentUser = null;
+            document.getElementById('header').style.display = 'none';
+            showScreen('loginScreen');
+        }
+        
+        // 進捗読み込み
+        async function loadProgress() {
+            try {
+                const response = await fetch(`${API_BASE}/study.php?action=progress`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const progress = data.data;
+                    document.getElementById('studyingWords').textContent = progress.studying_words;
+                    document.getElementById('masteredWords').textContent = progress.mastered_words;
+                    document.getElementById('correctRate').textContent = progress.correct_rate + '%';
+                    
+                    if (currentUser.ranking) {
+                        document.getElementById('streakDays').textContent = currentUser.ranking.streak_days + '日';
+                    }
+                    
+                    document.getElementById('reviewCount').textContent = progress.review_words;
+                }
+            } catch (error) {
+                console.error('進捗の読み込みに失敗:', error);
+            }
+        }
+        
+        // 新規学習開始
+        async function startNewStudy() {
+            try {
+                const response = await fetch(`${API_BASE}/study.php?action=words&limit=20`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    studyWords = data.data;
+                    currentWordIndex = 0;
+                    startStudySession();
+                } else {
+                    alert('単語が見つかりませんでした');
+                }
+            } catch (error) {
+                alert('単語の読み込みに失敗しました');
+            }
+        }
+        
+        // 復習開始
+        async function startReview() {
+            try {
+                const response = await fetch(`${API_BASE}/study.php?action=review`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data.words.length > 0) {
+                    studyWords = data.data.words;
+                    currentWordIndex = 0;
+                } else {
+                    alert('復習する単語がありません');
+                }
+            } catch (error) {
+                alert('復習単語の読み込みに失敗しました');
+            }
+        }
+        
+        // 音声合成
+        function speakWord(text, lang) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = speechSpeed;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // 自動再生
+        function autoPlay() {
+            if (studyInterval) clearInterval(studyInterval);
+            
+            studyInterval = setInterval(() => {
+                if (isPlaying) {
+                    nextWord();
+                }
+            }, 5000);
+        }
+        
+        // 再生/一時停止トグル
+        function toggleStudy() {
+            isPlaying = !isPlaying;
+            document.getElementById('playPauseBtn').textContent = isPlaying ? '⏸ 一時停止' : '▶ 再生';
+        }
+        
+        // 次の単語
+        function nextWord() {
+            currentWordIndex++;
+            if (currentWordIndex >= studyWords.length) {
+                currentWordIndex = 0;
+            }
+            displayWord();
+        }
+        
+        // 前の単語
+        function previousWord() {
+            currentWordIndex--;
+            if (currentWordIndex < 0) {
+                currentWordIndex = studyWords.length - 1;
+            }
+            displayWord();
+        }
+        
+        // 速度変更
+        function changeSpeed(value) {
+            speechSpeed = parseFloat(value);
+            document.getElementById('speedValue').textContent = speechSpeed.toFixed(1);
+        }StudySession();
+                } else {
+                    alert('復習する単語がありません');
+                }
+            } catch (error) {
+                alert('復習単語の読み込みに失敗しました');
+            }
+        }
+        
+        // 学習セッション開始
+        async function startStudySession() {
+            const response = await fetch(`${API_BASE}/study.php?action=start_session`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                sessionId = data.data.session_id;
+                sessionStartTime = Date.now();
+            }
+            
+            showScreen('studyScreen');
+            displayWord();
+            isPlaying = true;
+            autoPlay();
+        }
+        
+        // 単語表示
+        function displayWord() {
+            if (currentWordIndex >= studyWords.length) {
+                currentWordIndex = 0;
+            }
+            
+            const word = studyWords[currentWordIndex];
+            document.getElementById('studyWord').textContent = word.word_en;
+            document.getElementById('studyTranslation').textContent = word.word_jp;
+            
+            const progress = ((currentWordIndex + 1) / studyWords.length) * 100;
+            document.getElementById('studyProgress').style.width = progress + '%';
+            
+            // 音声再生
+            speakWord(word.word_en, 'en-US');
+            setTimeout(() => speakWord(word.word_jp, 'ja-JP'), 2000);
+        }
+        
+        // 音声合成
+        function speakWord(text, lang) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = speechSpeed;
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // 自動再生
+        function autoPlay() {
+            if (studyInterval) clearInterval(studyInterval);
+            
+            studyInterval = setInterval(() => {
+                if (isPlaying) {
+                    nextWord();
+                }
+            }, 5000);
+        }
+        
+        // 再生/一時停止トグル
+        function toggleStudy() {
+            isPlaying = !isPlaying;
+            document.getElementById('playPauseBtn').textContent = isPlaying ? '⏸ 一時停止' : '▶ 再生';
+        }
+        
+        // 次の単語
+        function nextWord() {
+            currentWordIndex++;
+            if (currentWordIndex >= studyWords.length) {
+                currentWordIndex = 0;
+            }
+            displayWord();
+        }
+        
+        // 前の単語
+        function previousWord() {
+            currentWordIndex--;
+            if (currentWordIndex < 0) {
+                currentWordIndex = studyWords.length - 1;
+            }
+            displayWord();
+        }
+        
+        // 速度変更
+        function changeSpeed(value) {
+            speechSpeed = parseFloat(value);
+            document.getElementById('speedValue').textContent = speechSpeed.toFixed(1);
+        }
+        
+        // 学習終了
+        async function endStudy() {
+            if (studyInterval) clearInterval(studyInterval);
+            
+            const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
+            
+            await fetch(`${API_BASE}/study.php?action=end_session`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    words_studied: studyWords.length,
+                    duration: duration
+                })
+            });
+            
+            // テスト生成
+            generateTest();
+        }
+        
+        // テスト生成
+        async function generateTest() {
+            try {
+                const wordIds = studyWords.map(w => w.id);
+                
+                const response = await fetch(`${API_BASE}/test.php?action=generate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ word_ids: wordIds })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    testQuestions = data.data.questions;
+                    currentQuestionIndex = 0;
+                    testAnswers = [];
+                    showScreen('testScreen');
+                    displayQuestion();
+                }
+            } catch (error) {
+                alert('テストの生成に失敗しました');
+            }
+        }
+        
+        // 問題表示
+        function displayQuestion() {
+            if (currentQuestionIndex >= testQuestions.length) {
+                submitTest();
+                return;
+            }
+            
+            const question = testQuestions[currentQuestionIndex];
+            questionStartTime = Date.now();
+            
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = testQuestions.length;
+            
+            const progress = ((currentQuestionIndex + 1) / testQuestions.length) * 100;
+            document.getElementById('testProgress').style.width = progress + '%';
+            
+            // 選択肢表示
+            const choicesContainer = document.getElementById('choicesContainer');
+            choicesContainer.innerHTML = '';
+            
+            question.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice;
+                btn.onclick = () => answerQuestion(choice);
+                choicesContainer.appendChild(btn);
+            });
+        }
+        
+        // 回答処理
+        function answerQuestion(selectedAnswer) {
+            const question = testQuestions[currentQuestionIndex];
+            const isCorrect = selectedAnswer === question.correct_answer;
+            const answerTime = (Date.now() - questionStartTime) / 1000;
+            
+            testAnswers.push({
+                word_id: question.word_id,
+                is_correct: isCorrect,
+                answer_time: answerTime
+            });
+            
+            // 正誤表示
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === question.correct_answer) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === selectedAnswer && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayQuestion();
+            }, 1500);
+        }
+        
+        // テスト提出
+        async function submitTest() {
+            const duration = Math.floor(testAnswers.reduce((sum, a) => sum + a.answer_time, 0));
+            
+            try {
+                const response = await fetch(`${API_BASE}/test.php?action=submit`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        answers: testAnswers,
+                        duration: duration
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showTestResult(data.data);
+                }
+            } catch (error) {
+                alert('テストの提出に失敗しました');
+            }
+        }
+        
+        // テスト結果表示
+        function showTestResult(result) {
+            document.getElementById('resultCorrect').textContent = result.correct_answers;
+            document.getElementById('resultWrong').textContent = result.wrong_answers;
+            document.getElementById('resultRate').textContent = result.correct_rate.toFixed(1) + '%';
+            
+            // 間違えた単語表示
+            if (result.wrong_words && result.wrong_words.length > 0) {
+                let html = '<div style="margin-top: 20px;"><h3>間違えた単語</h3><ul style="list-style: none; padding: 0;">';
+                result.wrong_words.forEach(word => {
+                    html += `<li style="padding: 10px; border-bottom: 1px solid #eee;">
+                        <strong>${word.word_en}</strong> = ${word.word_jp}
+                    </li>`;
+                });
+                html += '</ul></div>';
+                document.getElementById('wrongWordsContainer').innerHTML = html;
+            } else {
+                document.getElementById('wrongWordsContainer').innerHTML = '<p style="text-align: center; color: var(--success-color); margin-top: 20px;">全問正解！素晴らしいです！</p>';
+            }
+            
+            showScreen('resultScreen');
+        }
+        
+        // ランキング読み込み
+        async function loadRanking(type = 'study_time') {
+            try {
+                const response = await fetch(`${API_BASE}/social.php?action=ranking&type=${type}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayRanking(data.data.rankings, data.data.my_ranking);
+                }
+            } catch (error) {
+                console.error('ランキングの読み込みに失敗:', error);
+            }
+        }
+        
+        // ランキング表示
+        function displayRanking(rankings, myRanking) {
+            const container = document.getElementById('rankingList');
+            container.innerHTML = '';
+            
+            rankings.forEach((rank, index) => {
+                const isMe = rank.user_id === currentUser.id;
+                const div = document.createElement('div');
+                div.className = 'ranking-item' + (isMe ? ' my-rank' : '');
+                
+                const rankClass = index < 3 ? 'top3' : '';
+                
+                div.innerHTML = `
+                    <div class="rank-number ${rankClass}">${index + 1}</div>
+                    <div class="user-avatar">${rank.name.charAt(0)}</div>
+                    <div class="user-info-rank">
+                        <div class="user-name">${rank.name}</div>
+                        <div class="user-stats">
+                            学習時間: ${Math.floor(rank.total_study_time / 60)}分 | 
+                            正答率: ${rank.correct_rate}% | 
+                            連続: ${rank.streak_days}日
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+        
+        // ランキングタブ切り替え
+        function switchRankingTab(type) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            loadRanking(type);
+        }
+    </script>
+</body>
+</html>
